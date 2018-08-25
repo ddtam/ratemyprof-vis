@@ -1,9 +1,14 @@
 import urllib.request
+import time
 import bs4 as BeautifulSoup4
 
 # load in teacher ids
 teacher_ids = open("teacher_ids", 'r').read().split('\n')
 headers = {'User-Agent': 'Mozilla/5.0'}
+count = 1
+this_second = time.gmtime().tm_sec
+runs_this_second = 0
+pause = False
 
 for tid in teacher_ids:
     url = 'https://www.ratemyprofessors.com/ShowRatings.jsp?tid=' + tid
@@ -28,3 +33,21 @@ for tid in teacher_ids:
     # write to file
     with open('data', 'a') as the_file:
         the_file.write(lname + ',' + fname + ',' + faculty + ',' + grade + ',' + takeAgain + ',' + diff + ',' + reviews + '\n')
+
+    print('%s: scraped %d - %s %s' % (time.ctime(), count, fname, lname))
+    count += 1
+
+    currTime = time.gmtime()
+    if runs_this_second >= 2 and currTime.tm_sec == this_second:
+        runs_this_second = 0
+        pause = True
+    elif currTime.tm_sec == this_second:
+        runs_this_second += 1
+    else:
+        this_second = time.gmtime().tm_sec
+        runs_this_second = 0
+
+    while pause:
+        time.sleep(0.1)
+        if currTime.tm_sec != this_second:
+            pause = False
