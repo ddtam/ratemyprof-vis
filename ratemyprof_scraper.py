@@ -1,5 +1,7 @@
 import urllib.request
 import time
+from http.client import IncompleteRead
+
 import bs4 as BeautifulSoup4
 
 # load in teacher ids
@@ -16,8 +18,11 @@ for tid in teacher_ids:
     # grab and parse the html
     req = urllib.request.Request(url, None, headers)
 
-    with urllib.request.urlopen(req) as response:
-        html = response.read()
+    try:
+        with urllib.request.urlopen(req) as response:
+            html = response.read()
+    except IncompleteRead as e:
+        html = e.partial
 
     soup = BeautifulSoup4.BeautifulSoup(html, 'html.parser')
 
