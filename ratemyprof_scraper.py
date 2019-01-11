@@ -12,6 +12,30 @@ this_second = time.gmtime().tm_sec
 runs_this_second = 0
 pause = False
 
+
+def write_data():
+    """
+    Extracts data from BeautifulSoup interpreted HTML and writes it to file
+    :return: nothing;
+    """
+
+    global fname, lname
+    # extract data
+    fname = soup.find('h1', attrs={'class': 'profname'}).contents[1].text.strip()
+    lname = soup.find('h1', attrs={'class': 'profname'}).contents[5].text.strip()
+    faculty = soup.find('div', attrs={'class': 'result-title'})\
+        .contents[0].strip().replace('Professor in the ', '').replace(' department', '')
+    grade = soup.find('div', attrs={'class': 'grade'}).text.strip()
+    takeAgain = soup.find('div', attrs={'class': 'breakdown-section'}).contents[3].text.strip().replace('%', '')
+    diff = soup.find('div', attrs={'class': 'breakdown-section difficulty'}).contents[1].text.strip()
+    reviews = soup.find('div', attrs={'class': 'table-toggle', 'data-table': 'rating-filter'}).text.strip().replace(
+        ' Student Ratings', '')
+    # write to file
+    with open('data', 'a') as the_file:
+        the_file.write(
+            lname + ',' + fname + ',' + faculty + ',' + grade + ',' + takeAgain + ',' + diff + ',' + reviews + '\n')
+
+
 for tid in teacher_ids:
     url = 'https://www.ratemyprofessors.com/ShowRatings.jsp?tid=' + tid
 
@@ -26,20 +50,10 @@ for tid in teacher_ids:
 
     soup = BeautifulSoup4.BeautifulSoup(html, 'html.parser')
 
-    # extract data
-    fname     = soup.find('h1',  attrs={'class': 'profname'}).contents[1].text.strip()
-    lname     = soup.find('h1',  attrs={'class': 'profname'}).contents[5].text.strip()
-    faculty   = soup.find('div', attrs={'class': 'result-title'}).contents[0].strip().replace('Professor in the ','').replace(' department','')
-    grade     = soup.find('div', attrs={'class': 'grade'}).text.strip()
-    takeAgain = soup.find('div', attrs={'class': 'breakdown-section'}).contents[3].text.strip().replace('%','')
-    diff      = soup.find('div', attrs={'class': 'breakdown-section difficulty'}).contents[1].text.strip()
-    reviews   = soup.find('div', attrs={'class': 'table-toggle', 'data-table': 'rating-filter'}).text.strip().replace(' Student Ratings','')
+    write_data()
 
-    # write to file
-    with open('data', 'a') as the_file:
-        the_file.write(lname + ',' + fname + ',' + faculty + ',' + grade + ',' + takeAgain + ',' + diff + ',' + reviews + '\n')
-
-    print('%s: scraped %d - %s %s' % (time.ctime(), count, fname, lname))
+    print('%s: scraped %d - %s %s' % (time.ctime(), count, fname, lname))  # logging
+    # regulate scrape rate to stop timing-out
     count += 1
 
     currTime = time.gmtime()
